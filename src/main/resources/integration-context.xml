@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.3.xsd">
+
+	<int:gateway service-interface="com.example.EnhancedPrinterGateway" >
+		<int:method name="print"  request-channel="inputChannel" />
+		<int:method name="printUppercase"  request-channel="uppercaseChannel" />
+	</int:gateway>
+	
+	<int:channel id="inputChannel" />
+	<int:channel id="uppercaseChannel" />
+	
+	<int:header-value-router header-name="channelName" input-channel="inputChannel"/>
+	
+<!-- 	<int:payload-type-router input-channel="inputChannel"> -->
+<!-- 		<int:mapping type="java.lang.Integer" channel="intChannel"/> -->
+<!-- 		<int:mapping type="java.lang.String" channel="stringChannel"/> -->
+<!-- 	</int:payload-type-router> -->
+	
+	<int:channel id="intChannel" />
+	<int:channel id="stringChannel" />
+	
+	<bean id="printService" class="com.example.PrintService"/>
+	<int:service-activator input-channel="inputChannel" ref="printService" method="print" /> 
+	
+	<bean id="uppercasePrintService" class="com.example.UppercasePrintService"/>
+	<int:service-activator input-channel="uppercaseChannel" ref="uppercasePrintService" method="print" />
+	
+</beans>

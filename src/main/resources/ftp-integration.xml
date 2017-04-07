@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:int-http="http://www.springframework.org/schema/integration/http"
+	xmlns:int-file="http://www.springframework.org/schema/integration/file"
+	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
+	xsi:schemaLocation="http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-4.3.xsd
+		http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+
+	<int:gateway service-interface="com.example.FileWriterGateway"
+		default-request-channel="ftpChannel" />
+
+	<bean id="ftpClientFactory"
+		class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
+		<property name="host" value="localhost" />
+		<property name="port" value="21" />
+		<property name="username" value="renjith" />
+		<property name="password" value="password" />
+	</bean>
+
+	<int:channel id="ftpChannel" />
+	
+	<!-- FTP OUTBOUND GATEWAY -->
+	
+	<int:channel id="outboundChannel" />
+	
+	<int-ftp:outbound-gateway session-factory="ftpClientFactory" command="get" 
+		expression="payload" local-directory="src/test/write" 
+		request-channel="ftpChannel" reply-channel="outboundChannel" />
+	
+	<bean id="messgePrinter" class="com.example.MessagePrinter"/>
+	<int:service-activator ref="messgePrinter" method="print" input-channel="outboundChannel"/>
+
+	<!-- FTP OUTBOUND CHANNEL ADAPTER -->
+	
+	<!-- <int-ftp:outbound-channel-adapter -->
+	<!-- session-factory="ftpClientFactory" remote-directory="files" channel="ftpChannel" -->
+	<!-- remote-filename-generator-expression="headers['fileName']" /> -->
+
+	<!-- FTP INBOUND CHANNEL ADAPTER -->
+
+	<!-- <int-ftp:inbound-channel-adapter session-factory="ftpClientFactory" -->
+	<!-- local-directory="file:src/test/write" remote-directory="files" -->
+	<!-- delete-remote-files="true" channel="ftpChannel" > -->
+	<!-- <int:poller fixed-rate="10000" /> -->
+	<!-- </int-ftp:inbound-channel-adapter> -->
+
+	<!-- <bean id="printer" class="com.example.FilePrinter" /> -->
+
+	<!-- <int:service-activator method="print" -->
+	<!-- input-channel="ftpChannel" ref="printer" /> -->
+
+	<!-- <int:channel id="inboundChannel" /> -->
+
+	<!-- FILE CHANNEL -->
+
+	<!-- <int-file:inbound-channel-adapter directory="file:src/test" -->
+	<!-- filename-pattern="sample*" channel="inboundChannel" > -->
+	<!-- <int:poller fixed-rate="10000" /> -->
+	<!-- </int-file:inbound-channel-adapter> -->
+
+	<!-- <int-file:outbound-channel-adapter directory="file:src/test/write" 
+		channel="inboundChannel" /> -->
+</beans>
